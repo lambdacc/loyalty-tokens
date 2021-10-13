@@ -1,5 +1,5 @@
 #!/bin/bash
-printf "\This demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo shows an authentication NFT minted by an issuer, delivered to a client wallet and then a protected resource granting and denying access to wallets based on whether they have the correct NFT.\n"
+printf "\nThis demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo shows an authentication NFT minted by an issuer, delivered to a client wallet and then a protected resource granting and denying access to wallets based on whether they have the correct NFT.\n"
 sleep 1
 
 printf "\n"

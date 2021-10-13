@@ -1,33 +1,5 @@
-# OAuth-NFT-2 project
-OAuth 2.0 type authentication using NFT
-
-This repo includes 
- - documentation in this README
- - smart contracts code with relevant endpoints
- - configuration for building PAB executable
- - A `run.sh` script using which you can run a demo of the functionality in the PAB simulator 
-
-Short video: [Link](https://drive.google.com/file/d/1brfFYd664Ob39M4iLJXZhPJy3BK5v6ep/view?usp=sharing)
-
-### Idea of OAuth-NFT
-
-This project showcases the potential use of NFT, for implementing OAuth 2.0 type authentication.
-
-The OAuth 2.0 authorization framework enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner by orchestrating an approval interaction between the resource owner and the HTTP service, or by allowing the third-party application to obtain access on its own behalf.
-
-For example, you would have used your social media accounts like Google, Facebook or Twitter to sign up and login to other websites. Behind scenes OAuth 2.0 enables the social login. Further details about OAuth 2.0 be found [here](https://oauth.net/2/)
-
-Potentially NFTs can be used for achieving the functionality of the OAuth protocol used for authentication in web applications. For example, the way you log in to a website using your Google or Facebook account.
-
-
-### Implementation
-In this scheme, there is an issuer smart contract called `AuthNFTIssuer` that mints and issues NFTs to authorised clients. The NFT minted is delivered to the authorised wallet. There is another smart contract called `ProtectedResource` that acts as the custodian of the restricted resource. The protected smart contract grants access to a client wallet if it holds the authentication NFT. If it does not, then access is denied.
-
-What makes the scheme secure is the way the NFT in minted. The NFT's currency symbol is built using the pkh of the Issuer whereas the token name is the pkh of the client wallet. This makes the NFT policy unique to the issuer as well as the client wallet. The protected smart contract checks wallets by walletId of the issuer as well as that wallet itelf. So a given wallet should have the NFT issued by the issuer and also the token should match its own pkh to be granted access by the protected smart contract.
-
-**Illustration**:
-Refer to the diagram below. The client wallet is the one that requests for an authentication NFT. The Auth SC is the smart contract that mints the auth NFT and delivers to the requested client. Whether to authorise a client is decided by issuer and in practice can depend on various aspects.  If authorised, the issuer delivers the NFT to the client. The client can then request access ro the protected resource. The smart contract at the protected resource checks for the correct NFT and accordingly grants or denies access.
-![img.png](img.png)
+# Loyalty tokens using NFT
+This demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo shows an authentication NFT minted by an issuer, delivered to a client wallet and then a protected resource granting and denying access to wallets based on whether they have the correct NFT.
 
 
 This project gives uses the [Plutus Platform starter project](https://github.com/input-output-hk/plutus-starter) as the template.
