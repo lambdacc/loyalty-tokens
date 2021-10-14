@@ -35,7 +35,7 @@ curl -H "Content-Type: application/json" -X POST -d '[]' http://localhost:9080/a
 sleep 1
 
 sleep 1
-printf "\n2. Mint NFTs and send to A and B wallets\n"
+printf "\n2. Mint NFTs and send to A and B wallets. Wallet C does not receive any.\n"
 read -n1 -r -p "Press any key to continue..." key
 printf "\n"
 curl -H "Content-Type: application/json" -X POST -d '{"level":"GENERAL", "destW":{"getWalletId": '$HolderWA'}}' http://localhost:9080/api/contract/instance/$IssuerW_IID/endpoint/mint

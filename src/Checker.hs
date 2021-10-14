@@ -12,7 +12,7 @@
 
 module Checker(endpoints, CheckerSchema) where
 
-import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Char8  as BSC
 import           Control.Lens           (view)
 import           Control.Monad          hiding (fmap)
 import           Data.Aeson             (ToJSON, FromJSON)
@@ -78,11 +78,14 @@ pkhMatcher pkh tn =
 collectRewards :: [(CurrencySymbol,TokenName,Integer)] -> [String]
 collectRewards l = map (\(_,tn,qty) -> showReward tn qty) l
 
+{-cleanseString :: String -> String
+cleanseString s = filter (`notElem` "\\") s-}
+
 showReward :: TokenName -> Integer -> String
 showReward tn qty =
           let tnString = show tn
               rewardPart = show $ last $ splitOn "#" (tnString)
-              in rewardPart ++ show qty
+              in rewardPart ++ " for " ++ (show qty)
 
 
 {- Why does this not work ???
