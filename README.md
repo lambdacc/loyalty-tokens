@@ -55,7 +55,7 @@ the general [PAB Architecture documentation](https://github.com/input-output-hk/
 
 
 #### Future work
-The token name used in this demo was built using the public key hash of the client wallet (NFT requestor). The token name can be encoded with more information like the expiry time of the auth NFT, the list of privileges obtained by holding this NFT etc.  
+Encode expiry time for rewards into the token.  
 
 The contract code can be cleaned up a bit. Did not get time to tidy up some unused imports.
 
