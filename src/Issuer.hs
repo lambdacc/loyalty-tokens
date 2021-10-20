@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Issuer (issuerCS, endpoints, unpackPkh, IssuerSchema) where
+module Issuer (issuerCS, endpoints, IssuerSchema) where
 
 import Control.Lens (view)
 import Control.Monad hiding (fmap)
@@ -26,19 +26,19 @@ import Ledger hiding (mint, singleton)
 import Ledger.Constraints as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import Ledger.Value as Value
-import Playground.Contract (ToSchema)
-import Playground.TH (mkKnownCurrencies, mkSchemaDefinitions)
-import Playground.Types (KnownCurrency (..))
 import Plutus.Contract
 import qualified PlutusTx
 import PlutusTx.Builtins
 import PlutusTx.Builtins.Class
-import PlutusTx.Prelude hiding (Semigroup (..), unless)
+import           PlutusTx.Prelude       hiding (Semigroup(..), unless, (==))
+import           Playground.Contract    (ToSchema)
+import           Playground.TH          (mkKnownCurrencies, mkSchemaDefinitions)
+import           Playground.Types       (KnownCurrency (..))
+import           Prelude                (IO, Show (..), String, Semigroup (..), (==))
 import Text.Printf (printf)
-import Wallet.Emulator.Wallet (Wallet, WalletId, getWalletId, walletPubKey)
-import Prelude (IO, Semigroup (..), Show (..), String)
+import           Wallet.Emulator.Wallet (Wallet, WalletId, walletPubKey, getWalletId)
 
-{-# INLINEABLE mkPolicy #-}
+{-# INLINABLE mkPolicy #-}
 mkPolicy :: PubKeyHash -> () -> ScriptContext -> Bool
 mkPolicy pkh () ctx = txSignedBy (scriptContextTxInfo ctx) pkh
 
@@ -63,42 +63,45 @@ type IssuerSchema =
 
 mint :: forall w s e. AsContractError e => IssueParam -> Contract w s e ()
 mint param = do
-  pkh <- pubKeyHash <$> ownPubKey
-  utxos <- utxosAt $ pubKeyHashAddress pkh
-  let destWallet = destW param
-      destPkh = pubKeyHash . walletPubKey $ destWallet
-      val = buildValue (pkh, level param, destPkh)
-      lookups =
-        Constraints.mintingPolicy (policy pkh)
-          <> Constraints.unspentOutputs utxos
-      tx =
-        Constraints.mustMintValue val
-          <> Constraints.mustPayToPubKey destPkh val
-  logInfo @String $ printf "Minting NFT %s" (show val)
-  ledgerTx <- submitTxConstraintsWith @Void lookups tx
-  void $ awaitTxConfirmed $ txId ledgerTx
-  logInfo @String $ printf "Issued NFT %s" (show val)
+    pkh <- pubKeyHash <$> ownPubKey
+    utxos <- utxosAt $ pubKeyHashAddress pkh
+    let destWallet = destW param
+        destPkh = (pubKeyHash . walletPubKey) $ destWallet
+          {-val = testVal (pkh, level param, destPkh)-}
+    val <- buildValue (pkh, level param, destPkh)
+    let lookups = Constraints.mintingPolicy (policy pkh) <>
+              Constraints.unspentOutputs utxos
+        tx  = Constraints.mustMintValue val <>
+              Constraints.mustPayToPubKey destPkh val
+    logInfo @String $ printf "Minting NFT %s" (show val)
+    ledgerTx <- submitTxConstraintsWith @Void lookups tx
+    void $ awaitTxConfirmed $ txId ledgerTx
+    logInfo @String $ printf "Issued NFT %s" (show val)
 
-buildValue :: (PubKeyHash, String, PubKeyHash) -> Value
+buildValue :: forall w s e. AsContractError e => (PubKeyHash, String , PubKeyHash) -> Contract w s e Value
 buildValue (pkh, "GENERAL", destPkh) =
-  Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh, "LOUNGE")) 2
+    do exp <- getExpiry "GENERAL"
+       return $ Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh,"LOUNGE",exp)) 2
 buildValue (pkh, "SPECIAL", destPkh) =
-  Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh, "SUITE")) 2
-    <> Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh, "SPA")) 2
+    do exp <- getExpiry "SPECIAL"
+       return $ Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh,"SUITE",exp)) 2 <>
+                Value.singleton (issuerCS pkh) (TokenName $ stringToBuiltinByteString $ buildTokenName (destPkh,"SPA",exp)) 2
 
-buildTokenName :: (PubKeyHash, String) -> String
-buildTokenName (p, r) = show (getPubKeyHash p) ++ "#" ++ r
+getExpiry :: forall w s e. AsContractError e => String -> Contract w s e POSIXTime
+getExpiry cat
+    | cat == "GENERAL" = currentTime >>= (return . (+ POSIXTime 10000))
+    | cat == "SPECIAL" = currentTime >>= (return . (+ POSIXTime 100000000))
 
-unpackPkh :: PubKeyHash -> String
-unpackPkh = BSC.unpack . fromBuiltin . getPubKeyHash
+buildTokenName :: (PubKeyHash, String, POSIXTime) -> String
+buildTokenName (p,r,e) = show (getPubKeyHash p) ++ "#" ++ r ++ "#" ++ show (getPOSIXTime e)
 
 logCS :: forall w s e. AsContractError e => () -> Contract w s e ()
 logCS () = do
-  pkh <- pubKeyHash <$> ownPubKey
-  let cs = issuerCS pkh
-  logInfo @String $
-    "Logging own nft token name : " <> show cs
-  logInfo @String $ "logCS complete"
+    pkh <- pubKeyHash <$> ownPubKey
+    let cs = issuerCS pkh
+    logInfo @String
+              $ "Logging own currency symbol : " <> show cs
+    logInfo @String $ "logCS complete"
 
 mint' :: Promise () IssuerSchema Text ()
 mint' = endpoint @"mint" mint

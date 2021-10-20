@@ -1,5 +1,5 @@
 # Loyalty tokens using NFT
-This demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo shows an authentication NFT minted by an issuer, delivered to a client wallet and then a protected resource granting and denying access to wallets based on whether they have the correct NFT.
+This demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. An issuer supplies loyalty tokens of different categories to its patron. The rewards depend on the level of the token. The rewards are encoded into the token issued for verification at a later point.
 
 
 This project gives uses the [Plutus Platform starter project](https://github.com/input-output-hk/plutus-starter) as the template.

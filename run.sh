@@ -1,5 +1,5 @@
 #!/bin/bash
-printf "\nThis demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo shows an authentication NFT minted by an issuer, delivered to a client wallet and then a protected resource granting and denying access to wallets based on whether they have the correct NFT.\n"
+printf "\nThis demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. This demo showcases how to use loyalty tokens using the idea of NFT based implementation of OAuth 2.0. An issuer supplies loyalty tokens of different categories to its patron. The rewards depend on the level of the token. The nature of the reward and its quantity and are encoded into the token issued for verification at a later point.\n"
 sleep 1
 
 printf "\n"
@@ -27,7 +27,7 @@ printf "\nThere are 2 levels of loyalty tokens minted GENERAL and SPECIAL\n"
 printf "\nEach type comes with its set of privileges and expiration time\n"
 printf "\nHolder A is 'GENERAL' member while Holder B is a 'SPECIAL' member\n"
 
-sleep 2
+sleep 1
 printf "\n1. Log the currency symbol for reference.\n"
 read -n1 -r -p "Press any key to continue..." key
 printf "\n"
@@ -39,13 +39,83 @@ printf "\n2. Mint NFTs and send to A and B wallets. Wallet C does not receive an
 read -n1 -r -p "Press any key to continue..." key
 printf "\n"
 curl -H "Content-Type: application/json" -X POST -d '{"level":"GENERAL", "destW":{"getWalletId": '$HolderWA'}}' http://localhost:9080/api/contract/instance/$IssuerW_IID/endpoint/mint
-sleep 2
+sleep 1
 curl -H "Content-Type: application/json" -X POST -d '{"level":"SPECIAL", "destW":{"getWalletId": '$HolderWB'}}' http://localhost:9080/api/contract/instance/$IssuerW_IID/endpoint/mint
 sleep 1
 
 printf "\n3. Checker wallet now tries to find all NFTs for the issuer inside the wallets A B C.\n"
+printf "\n3. The output depends on the time elapsed since the tokens were minted\n"
+
+printf "\nPress any key after you wait for a time < 10  or > 10 seconds...\n"
+printf "\n"
+
+if [ -t 0 ]; then
+  SAVED_STTY="`stty --save`"
+  stty -echo -icanon -icrnl time 0 min 0
+fi
+
+count=0
+keypress=''
+while [ "x$keypress" = "x" ]; do
+  sleep 1
+  let count+=1
+  echo -ne $count'\r'
+  keypress="`cat -v`"
+done
+
+if [ -t 0 ]; then stty "$SAVED_STTY"; fi
+
+echo "You pressed '$keypress' after $count seconds"
+printf "\nContinuing ... \n"
+
+
+curl -H "Content-Type: application/json" -X POST -d '{"issuerWallet":{"getWalletId": '$IssuerW'}, "holderWallet":{"getWalletId": '$HolderWA'}}' http://localhost:9080/api/contract/instance/$CheckerW_IID/endpoint/authorise
+sleep 1
+curl -H "Content-Type: application/json" -X POST -d '{"issuerWallet":{"getWalletId": '$IssuerW'}, "holderWallet":{"getWalletId": '$HolderWB'}}' http://localhost:9080/api/contract/instance/$CheckerW_IID/endpoint/authorise
+printf "\n"
+sleep 1
+curl -H "Content-Type: application/json" -X POST -d '{"issuerWallet":{"getWalletId": '$IssuerW'}, "holderWallet":{"getWalletId": '$HolderWC'}}' http://localhost:9080/api/contract/instance/$CheckerW_IID/endpoint/authorise
+printf "\n"
+sleep 1
+
+
+
+sleep 1
+printf "\n Now, we iterate through minting and authorising once more \n"
+printf "\n2. Mint NFTs and send to A and B wallets. Wallet C does not receive any.\n"
 read -n1 -r -p "Press any key to continue..." key
 printf "\n"
+curl -H "Content-Type: application/json" -X POST -d '{"level":"GENERAL", "destW":{"getWalletId": '$HolderWA'}}' http://localhost:9080/api/contract/instance/$IssuerW_IID/endpoint/mint
+sleep 1
+curl -H "Content-Type: application/json" -X POST -d '{"level":"SPECIAL", "destW":{"getWalletId": '$HolderWB'}}' http://localhost:9080/api/contract/instance/$IssuerW_IID/endpoint/mint
+sleep 1
+
+printf "\n3. Checker wallet now tries to find all NFTs for the issuer inside the wallets A B C.\n"
+printf "\n3. The output depends on the time elapsed since the tokens were minted\n"
+
+printf "\nPress any key after you wait for a time < 10  or > 10 seconds...\n"
+printf "\n"
+
+if [ -t 0 ]; then
+  SAVED_STTY="`stty --save`"
+  stty -echo -icanon -icrnl time 0 min 0
+fi
+
+count=0
+keypress=''
+while [ "x$keypress" = "x" ]; do
+  sleep 1
+  let count+=1
+  echo -ne $count'\r'
+  keypress="`cat -v`"
+done
+
+if [ -t 0 ]; then stty "$SAVED_STTY"; fi
+
+echo "You pressed '$keypress' after $count seconds"
+printf "\nContinuing ... \n"
+
+
 curl -H "Content-Type: application/json" -X POST -d '{"issuerWallet":{"getWalletId": '$IssuerW'}, "holderWallet":{"getWalletId": '$HolderWA'}}' http://localhost:9080/api/contract/instance/$CheckerW_IID/endpoint/authorise
 sleep 1
 curl -H "Content-Type: application/json" -X POST -d '{"issuerWallet":{"getWalletId": '$IssuerW'}, "holderWallet":{"getWalletId": '$HolderWB'}}' http://localhost:9080/api/contract/instance/$CheckerW_IID/endpoint/authorise
